@@ -1,0 +1,5 @@
+summarized_posts_cache.txt
+config.ini
+files/*
+
+.idea/*
