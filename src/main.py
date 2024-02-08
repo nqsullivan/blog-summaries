@@ -1,17 +1,20 @@
 import os
-
 import google.auth
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaFileUpload
 import requests
 from bs4 import BeautifulSoup
 from openai import OpenAI
-from src.config_helper import get_config_value
+from config_helper import get_config_value
+
+CACHE_FILE = '../summarized_posts_cache.txt'
+
+blog_urls = [
+    'https://www.tableau.com/blog', 'https://www.salesforce.com/blog/', 'https://cloud.google.com/blog/'
+]
 
 # Initialize OpenAI client
 client = OpenAI(api_key=get_config_value('OPENAI', 'API_KEY'))
-
-CACHE_FILE = 'summarized_posts_cache.txt'
 
 
 def load_cached_urls():
@@ -38,13 +41,9 @@ def add_url_to_cache(url):
 
 def get_blog_posts():
     cached_urls = load_cached_urls()
-
-    blog_homepages = [
-        'https://www.tableau.com/blog', 'https://www.salesforce.com/blog/', 'https://cloud.google.com/blog/'
-    ]
     blog_posts = set()
 
-    for homepage in blog_homepages:
+    for homepage in blog_urls:
         response = requests.get(homepage)
         soup = BeautifulSoup(response.text, 'html.parser')
         for link in soup.find_all('a'):
@@ -174,8 +173,8 @@ def upload_to_drive(filename, content):
         'parents': [get_config_value('GOOGLE', 'FOLDER_ID')]
     }
 
-    if not os.path.exists('files'):
-        os.makedirs('files')
+    if not os.path.exists('../files'):
+        os.makedirs('../files')
 
     # Save content to a file
     with open("files/" + filename, 'w') as file:
